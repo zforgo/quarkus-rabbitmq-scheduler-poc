@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<extension>
+    <executions>
+        <execution>
+            <id>enforce-global</id>
+            <phase>validate</phase>
+            <configuration>
+                <rules>
+                    <bannedRepositories>
+                        <message>To build this project, don't use maven repositories over HTTP. Please use
+                            HTTPS in your settings.xml or run the build with
+                            -Denforcer.skipRules=bannedRepositories
+                        </message>
+                        <level>ERROR</level>
+                        <bannedRepositories>
+                            <!--suppress HttpUrlsUsage -->
+                            <bannedRepository>http://*</bannedRepository>
+                        </bannedRepositories>
+                        <bannedPluginRepositories>
+                            <!--suppress HttpUrlsUsage -->
+                            <bannedPluginRepository>http://*</bannedPluginRepository>
+                        </bannedPluginRepositories>
+                    </bannedRepositories>
+                    <requireJavaVersion>
+                        <message>To build this project JDK 25 (or greater) is required. Please install it.</message>
+                        <version>25</version>
+                    </requireJavaVersion>
+                    <requireMavenVersion>
+                        <message>To build this project Maven 3.9.6 (or greater) is required. Please install it.</message>
+                        <version>3.9.6</version>
+                    </requireMavenVersion>
+                    <banDynamicVersions>
+                        <!-- while we don't allow snapshots in the tree, it's handy to be able to use a snapshot for testing -->
+                        <allowSnapshots>true</allowSnapshots>
+                    </banDynamicVersions>
+                </rules>
+            </configuration>
+        </execution>
+    </executions>
+</extension>
