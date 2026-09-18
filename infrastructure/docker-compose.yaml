@@ -1,0 +1,13 @@
+name: rabbitmq-scheduler-poc
+services:
+  rabbitmq:
+    image: rabbitmq:4.3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: firqua
+      RABBITMQ_DEFAULT_PASS: firqua1234
+    volumes:
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+      - ./rabbitmq/definitions.json:/opt/definitions.json:ro

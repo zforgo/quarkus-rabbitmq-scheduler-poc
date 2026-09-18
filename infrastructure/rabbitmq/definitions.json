@@ -1,0 +1,390 @@
+{
+  "rabbit_version": "4.3.6",
+  "vhosts": [
+    {
+      "name": "/",
+      "description": "Default virtual host",
+      "metadata": {
+        "description": "Default virtual host",
+        "tags": [],
+        "default_queue_type": "classic"
+      },
+      "tags": []
+    }
+  ],
+  "users": [
+    {
+      "name": "firqua",
+      "password_hash": "ANfEoCUbO46PsONB3pSFFHFy1Etgo8yVOCUIJJEAv307N/C2",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": [
+        "administrator"
+      ],
+      "limits": {}
+    }
+  ],
+  "permissions": [
+    {
+      "user": "firqua",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
+  "exchanges": [
+    {
+      "name": "scheduler-exchange",
+      "vhost": "/",
+      "type": "headers",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {
+        "alternate-exchange": "scheduler-unrouted-exchange"
+      }
+    },
+    {
+      "name": "scheduler-unrouted-exchange",
+      "vhost": "/",
+      "type": "fanout",
+      "durable": true,
+      "auto_delete": false,
+      "internal": true,
+      "arguments": {}
+    },
+    {
+      "name": "scheduler-requeue-exchange",
+      "vhost": "/",
+      "type": "direct",
+      "durable": true,
+      "auto_delete": false,
+      "internal": true,
+      "arguments": {}
+    },
+    {
+      "name": "scheduler-dispatcher-exchange",
+      "vhost": "/",
+      "type": "headers",
+      "durable": true,
+      "auto_delete": false,
+      "internal": true,
+      "arguments": {
+        "alternate-exchange": "scheduler-dispatcher-default-exchange"
+      }
+    },
+    {
+      "name": "scheduler-dispatcher-default-exchange",
+      "vhost": "/",
+      "type": "fanout",
+      "durable": true,
+      "auto_delete": false,
+      "internal": true,
+      "arguments": {}
+    }
+  ],
+  "queues": [
+    {
+      "name": "scheduled-tier-15s",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "scheduler-requeue-exchange",
+        "x-dead-letter-routing-key": "requeue",
+        "x-queue-type": "classic",
+        "x-message-ttl": 15000
+      }
+    },
+    {
+      "name": "scheduled-tier-2m",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "scheduler-requeue-exchange",
+        "x-dead-letter-routing-key": "requeue",
+        "x-queue-type": "classic",
+        "x-message-ttl": 120000
+      }
+    },
+    {
+      "name": "scheduled-tier-30m",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "scheduler-requeue-exchange",
+        "x-dead-letter-routing-key": "requeue",
+        "x-queue-type": "classic",
+        "x-message-ttl": 1800000
+      }
+    },
+    {
+      "name": "scheduled-tier-1h",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "scheduler-requeue-exchange",
+        "x-dead-letter-routing-key": "requeue",
+        "x-queue-type": "classic",
+        "x-message-ttl": 3600000
+      }
+    },
+    {
+      "name": "scheduled-tier-2h",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "scheduler-requeue-exchange",
+        "x-dead-letter-routing-key": "requeue",
+        "x-queue-type": "classic",
+        "x-message-ttl": 7200000
+      }
+    },
+    {
+      "name": "scheduled-tier-5h",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "scheduler-requeue-exchange",
+        "x-dead-letter-routing-key": "requeue",
+        "x-queue-type": "classic",
+        "x-message-ttl": 18000000
+      }
+    },
+    {
+      "name": "scheduled-tier-1d",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "scheduler-requeue-exchange",
+        "x-dead-letter-routing-key": "requeue",
+        "x-queue-type": "classic",
+        "x-message-ttl": 86400000
+      }
+    },
+    {
+      "name": "scheduled-tier-7d",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-dead-letter-exchange": "scheduler-requeue-exchange",
+        "x-dead-letter-routing-key": "requeue",
+        "x-queue-type": "classic",
+        "x-message-ttl": 604800000
+      }
+    },
+
+    {
+      "name": "unrouted-jobs",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-queue-type": "classic"
+      }
+    },
+
+    {
+      "name": "scheduler-requeue",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-queue-type": "classic"
+      }
+    },
+    {
+      "name": "queued-jobs-default",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-queue-type": "classic"
+      }
+    },
+    {
+      "name": "queued-jobs-payment",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-queue-type": "classic"
+      }
+    },
+    {
+      "name": "queued-jobs-order",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {
+        "x-queue-type": "classic"
+      }
+    }
+  ],
+  "bindings": [
+    {
+      "source": "scheduler-exchange",
+      "vhost": "/",
+      "destination": "scheduled-tier-15s",
+      "destination_type": "queue",
+      "routing_key": "",
+      "arguments": {
+        "x-match": "all",
+        "job-tier": "15s"
+      }
+    },
+    {
+      "source": "scheduler-exchange",
+      "vhost": "/",
+      "destination": "scheduled-tier-2m",
+      "destination_type": "queue",
+      "routing_key": "",
+      "arguments": {
+        "x-match": "all",
+        "job-tier": "2m"
+      }
+    },
+    {
+      "source": "scheduler-exchange",
+      "vhost": "/",
+      "destination": "scheduled-tier-30m",
+      "destination_type": "queue",
+      "routing_key": "",
+      "arguments": {
+        "x-match": "all",
+        "job-tier": "30m"
+      }
+    },
+    {
+      "source": "scheduler-exchange",
+      "vhost": "/",
+      "destination": "scheduled-tier-1h",
+      "destination_type": "queue",
+      "routing_key": "",
+      "arguments": {
+        "x-match": "all",
+        "job-tier": "1h"
+      }
+    },
+    {
+      "source": "scheduler-exchange",
+      "vhost": "/",
+      "destination": "scheduled-tier-2h",
+      "destination_type": "queue",
+      "routing_key": "",
+      "arguments": {
+        "x-match": "all",
+        "job-tier": "2h"
+      }
+    },
+    {
+      "source": "scheduler-exchange",
+      "vhost": "/",
+      "destination": "scheduled-tier-5h",
+      "destination_type": "queue",
+      "routing_key": "",
+      "arguments": {
+        "x-match": "all",
+        "job-tier": "5h"
+      }
+    },
+    {
+      "source": "scheduler-exchange",
+      "vhost": "/",
+      "destination": "scheduled-tier-1d",
+      "destination_type": "queue",
+      "routing_key": "",
+      "arguments": {
+        "x-match": "all",
+        "job-tier": "1d"
+      }
+    },
+    {
+      "source": "scheduler-exchange",
+      "vhost": "/",
+      "destination": "scheduled-tier-7d",
+      "destination_type": "queue",
+      "routing_key": "",
+      "arguments": {
+        "x-match": "all",
+        "job-tier": "7d"
+      }
+    },
+    {
+      "source": "scheduler-exchange",
+      "vhost": "/",
+      "destination": "scheduler-dispatcher-exchange",
+      "destination_type": "exchange",
+      "routing_key": "",
+      "arguments": {
+        "x-match": "all",
+        "job-tier": "dispatch"
+      }
+    },
+    {
+      "source": "scheduler-unrouted-exchange",
+      "vhost": "/",
+      "destination": "unrouted-jobs",
+      "destination_type": "queue",
+      "routing_key": "",
+      "arguments": {}
+    },
+    {
+      "source": "scheduler-requeue-exchange",
+      "vhost": "/",
+      "destination": "scheduler-requeue",
+      "destination_type": "queue",
+      "routing_key": "requeue"
+    },
+
+    {
+      "source": "scheduler-dispatcher-exchange",
+      "vhost": "/",
+      "destination": "queued-jobs-default",
+      "destination_type": "queue",
+      "routing_key": "",
+      "arguments": {
+        "x-match": "all",
+        "job-group": "default"
+      }
+    },
+    {
+      "source": "scheduler-dispatcher-default-exchange",
+      "vhost": "/",
+      "destination": "queued-jobs-default",
+      "destination_type": "queue",
+      "routing_key": "",
+      "arguments": {}
+    },
+
+    {
+      "source": "scheduler-dispatcher-exchange",
+      "vhost": "/",
+      "destination": "queued-jobs-order",
+      "destination_type": "queue",
+      "routing_key": "",
+      "arguments": {
+        "x-match": "all",
+        "job-group": "order"
+      }
+    },
+    {
+      "source": "scheduler-dispatcher-exchange",
+      "vhost": "/",
+      "destination": "queued-jobs-payment",
+      "destination_type": "queue",
+      "routing_key": "",
+      "arguments": {
+        "x-match": "all",
+        "job-group": "payment"
+      }
+    }
+  ]
+}
