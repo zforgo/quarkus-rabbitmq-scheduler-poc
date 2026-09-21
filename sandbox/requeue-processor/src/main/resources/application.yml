@@ -1,0 +1,27 @@
+rabbitmq-host: localhost
+rabbitmq-port: 5672
+rabbitmq-username: firqua
+rabbitmq-password: firqua1234
+
+mp:
+  messaging:
+    incoming:
+      requeue-requests:
+        connector: smallrye-rabbitmq
+        queue:
+          name: scheduler-requeue
+          declare: false
+        exchange:
+          declare: false
+
+    outgoing:
+      requeued-jobs:
+        connector: smallrye-rabbitmq
+        exchange:
+          name: scheduler-exchange
+          declare: false
+      scheduled-jobs:
+        connector: smallrye-rabbitmq
+        exchange:
+          name: scheduler-exchange
+          declare: false
