@@ -19,11 +19,19 @@
         <commons-lang3.version>3.20.0</commons-lang3.version>
         <jboss-logging.version>3.6.3.Final</jboss-logging.version>
         <jboss-logmanager.version>3.2.2.Final</jboss-logmanager.version>
+        <eclipse.serializer.version>4.2.0</eclipse.serializer.version>
 
         <junit.jupiter.version>6.1.2</junit.jupiter.version>
     </properties>
 
     <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.eclipse.serializer</groupId>
+                <artifactId>serializer</artifactId>
+                <version>${eclipse.serializer.version}</version>
+            </dependency>
+        </dependencies>
     </dependencyManagement>
 
     <dependencies>
