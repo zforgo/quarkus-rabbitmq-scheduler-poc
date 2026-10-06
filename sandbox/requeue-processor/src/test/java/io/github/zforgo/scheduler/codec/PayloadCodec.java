@@ -18,7 +18,6 @@ public class PayloadCodec {
     private PayloadCodec() {
         final var size = 5;
         foundation = SerializerFoundation.New()
-                // TODO use registerEntityTypes() with Jandex later
                 .setSerializerTypeInfoStrategyCreator(new SerializerTypeInfoStrategyCreator.IncrementalDiff(true));
         pool = new ArrayBlockingQueue<>(size);
         for (var i = 0; i < size; i++) {

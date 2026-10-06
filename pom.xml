@@ -155,5 +155,6 @@
         <module>tools/parent</module>
         <module>tools/ide-config</module>
         <module>sandbox/requeue-processor</module>
+        <module>sandbox/sample-application</module>
     </modules>
 </project>
