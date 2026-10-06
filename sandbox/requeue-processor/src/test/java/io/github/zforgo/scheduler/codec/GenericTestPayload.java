@@ -24,14 +24,16 @@ public class GenericTestPayload<T> {
         return name;
     }
 
-	@Override
-	public boolean equals(Object o) {
-		if (!(o instanceof GenericTestPayload<?> that)) return false;
-		return Objects.equals(foo, that.foo) && Objects.equals(name, that.name);
-	}
+    @Override
+    public boolean equals(Object o) {
+        if (!(o instanceof GenericTestPayload<?> that)) {
+            return false;
+        }
+        return Objects.equals(foo, that.foo) && Objects.equals(name, that.name);
+    }
 
-	@Override
-	public int hashCode() {
-		return Objects.hash(foo, name);
-	}
+    @Override
+    public int hashCode() {
+        return Objects.hash(foo, name);
+    }
 }
