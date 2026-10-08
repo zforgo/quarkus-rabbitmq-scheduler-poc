@@ -26,6 +26,9 @@ public class GenericTestPayload<T> {
 
     @Override
     public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
         if (!(o instanceof GenericTestPayload<?> that)) {
             return false;
         }

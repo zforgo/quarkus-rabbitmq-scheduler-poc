@@ -1,7 +1,8 @@
-package io.github.zforgo.scheduler.discovery;
+package io.github.zforgo.scheduler.internal;
 
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.github.zforgo.scheduler.Job;
@@ -16,6 +17,22 @@ public record JobDefinition(String group, String id, String className) {
         if (id == null && className == null) {
             throw new IllegalArgumentException("Either id or class must be provided for job in group '" + group + "'");
         }
+    }
+
+    record Key(String group, String id) {
+
+        Key {
+            Objects.requireNonNull(group);
+            Objects.requireNonNull(id);
+        }
+
+        String describe() {
+            return "'%s' in group '%s'".formatted(id, group);
+        }
+    }
+
+    Optional<Key> key() {
+        return id == null ? Optional.empty() : Optional.of(new Key(group, id));
     }
 
     static Stream<JobDefinition> of(Class<?> jobClass) {
