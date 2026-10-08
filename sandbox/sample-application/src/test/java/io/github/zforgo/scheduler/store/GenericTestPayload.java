@@ -1,4 +1,4 @@
-package io.github.zforgo.scheduler.codec;
+package io.github.zforgo.scheduler.store;
 
 import java.util.Objects;
 
@@ -26,9 +26,6 @@ public class GenericTestPayload<T> {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
         if (!(o instanceof GenericTestPayload<?> that)) {
             return false;
         }

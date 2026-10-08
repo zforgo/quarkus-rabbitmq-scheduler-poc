@@ -1,11 +1,11 @@
-package io.github.zforgo.scheduler.discovery;
+package io.github.zforgo.scheduler.internal;
 
-import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import io.quarkus.arc.Arc;
 import io.quarkus.test.component.QuarkusComponentTest;
 import io.quarkus.test.component.TestConfigProperty;
 
@@ -21,9 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @TestConfigProperty(key = "scheduler.discovery.strategy", value = "IGNORE")
 @DisplayName("Checks JobRegistry failures")
 public class FailuresTest {
-
-    @Inject
-    JobRegistry registry;
 
     @Singleton
     @Job(id = "process", groups = "payment")
@@ -44,25 +41,24 @@ public class FailuresTest {
     @Test
     @TestConfigProperty(key = "scheduler.jobs[0].id", value = "given-id")
     @TestConfigProperty(key = "scheduler.jobs[0].class",
-            value = "io.github.zforgo.scheduler.discovery.FailuresTest$PaymentProcessor")
+            value = "io.github.zforgo.scheduler.internal.FailuresTest$PaymentProcessor")
     @TestConfigProperty(key = "scheduler.jobs[1].id", value = "given-id")
     @TestConfigProperty(key = "scheduler.jobs[1].class",
-            value = "io.github.zforgo.scheduler.discovery.FailuresTest$CleanupJob")
+            value = "io.github.zforgo.scheduler.internal.FailuresTest$CleanupJob")
     void multipleId() {
-        var ex = assertThrows(IllegalStateException.class, () -> registry.init(null));
+        var ex = assertThrows(JobRegistryException.class, () -> Arc.container().select(JobRegistry.class).get());
         assertThat(ex.getMessage(), endsWith("'given-id' in group 'default'"));
     }
 
     @Test
     @TestConfigProperty(key = "scheduler.jobs[0].id", value = "given-id")
     @TestConfigProperty(key = "scheduler.jobs[0].class",
-            value = "io.github.zforgo.scheduler.discovery.FailuresTest$CleanupJob")
+            value = "io.github.zforgo.scheduler.internal.FailuresTest$CleanupJob")
     @TestConfigProperty(key = "scheduler.jobs[1].id", value = "other-id")
     @TestConfigProperty(key = "scheduler.jobs[1].class",
-            value = "io.github.zforgo.scheduler.discovery.FailuresTest$CleanupJob")
-    void ambiguousJobClass() {
-        registry.init(null);
-        var ex = assertThrows(IllegalStateException.class, () -> registry.resolve(CleanupJob.class));
+            value = "io.github.zforgo.scheduler.internal.FailuresTest$CleanupJob")
+    void ambiguousJobClass(JobRegistry registry) {
+        var ex = assertThrows(JobRegistryException.class, () -> registry.resolve(CleanupJob.class));
         assertEquals(
                 "Job class '%s' is registered with multiple ids in group '%s'. Specify id instead."
                         .formatted(CleanupJob.class.getName(), Job.DEFAULT_GROUP),

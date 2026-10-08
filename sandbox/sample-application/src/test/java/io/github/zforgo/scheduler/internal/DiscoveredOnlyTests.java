@@ -1,9 +1,8 @@
-package io.github.zforgo.scheduler.discovery;
+package io.github.zforgo.scheduler.internal;
 
 import jakarta.inject.Inject;
 import jakarta.inject.Singleton;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -14,8 +13,9 @@ import io.quarkus.test.component.TestConfigProperty;
 import io.github.zforgo.scheduler.Job;
 import io.github.zforgo.scheduler.SelfContainedJob;
 
+import static io.github.zforgo.scheduler.Assertions.assertEmpty;
+import static io.github.zforgo.scheduler.Assertions.assertNotEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 @QuarkusComponentTest(JobRegistry.class)
@@ -26,11 +26,11 @@ public class DiscoveredOnlyTests {
     @Inject
     JobRegistry registry;
 
-    @BeforeEach
-    void setup() {
-        registry.init(null);
-    }
-
+    //    @BeforeEach
+    //    void setup() {
+    //        registry.init(null);
+    //    }
+    //
     @Job
     static class NonRegisteredJob implements SelfContainedJob {
 
@@ -76,51 +76,43 @@ public class DiscoveredOnlyTests {
 
         @Test
         void noAnnotationAttributes() {
-            var def = registry.resolve(DiscoveredOnlyTests.DefaultNoArgJob.class);
-            assertNotNull(def);
+            var def = assertNotEmpty(registry.resolve(DiscoveredOnlyTests.DefaultNoArgJob.class));
             assertNull(def.id());
             assertEquals(Job.DEFAULT_GROUP, def.group());
         }
 
         @Test
         void noAnnotationAttributesWithDefaultGroup() {
-            var def = registry.resolve(Job.DEFAULT_GROUP, DiscoveredOnlyTests.DefaultNoArgJob.class);
-            assertNotNull(def);
+            var def = assertNotEmpty(registry.resolve(Job.DEFAULT_GROUP, DiscoveredOnlyTests.DefaultNoArgJob.class));
             assertNull(def.id());
             assertEquals(Job.DEFAULT_GROUP, def.group());
         }
 
         @Test
         void jobNotFoundInGroup() {
-            var def = registry.resolve("non-existing", DiscoveredOnlyTests.DefaultNoArgJob.class);
-            assertNull(def);
-
+            assertEmpty(registry.resolve("non-existing", DiscoveredOnlyTests.DefaultNoArgJob.class));
         }
 
         @Test
         void nonRegisteredJob() {
-            var def = registry.resolve(DiscoveredOnlyTests.NonRegisteredJob.class);
-            assertNull(def);
+            assertEmpty(registry.resolve(DiscoveredOnlyTests.NonRegisteredJob.class));
         }
 
         @Test
         void jobWithAnnotatedGroup() {
-            var def = registry.resolve("payment", DiscoveredOnlyTests.PaymentCleanupJob.class);
-            assertNotNull(def);
+            var def = assertNotEmpty(registry.resolve("payment", DiscoveredOnlyTests.PaymentCleanupJob.class));
             assertEquals("cleanup", def.id());
             assertEquals("payment", def.group());
         }
 
         @Test
         void jobWithGroupInDefault() {
-            var def = registry.resolve(DiscoveredOnlyTests.PaymentCleanupJob.class);
-            assertNull(def);
+            assertEmpty(registry.resolve(DiscoveredOnlyTests.PaymentCleanupJob.class));
         }
 
         @Test
         void jobNotInGroup() {
-            var def = registry.resolve("warehouse", DiscoveredOnlyTests.PaymentCleanupJob.class);
-            assertNull(def);
+            assertEmpty(registry.resolve("warehouse", DiscoveredOnlyTests.PaymentCleanupJob.class));
         }
     }
 
@@ -130,22 +122,19 @@ public class DiscoveredOnlyTests {
 
         @Test
         void idNotInDefault() {
-            var def = registry.resolve("cleanup");
-            assertNull(def);
+            assertEmpty(registry.resolve("cleanup"));
         }
 
         @Test
         void multipleGroups() {
             {
-                var def = registry.resolve("payment", "cleanup");
-                assertNotNull(def);
+                var def = assertNotEmpty(registry.resolve("payment", "cleanup"));
                 assertEquals("payment", def.group());
                 assertEquals("cleanup", def.id());
                 assertEquals(DiscoveredOnlyTests.PaymentCleanupJob.class.getName(), def.className());
             }
             {
-                var def = registry.resolve("warehouse", "cleanup");
-                assertNotNull(def);
+                var def = assertNotEmpty(registry.resolve("warehouse", "cleanup"));
                 assertEquals("warehouse", def.group());
                 assertEquals("cleanup", def.id());
                 assertEquals(DiscoveredOnlyTests.WarehouseCleanupJob.class.getName(), def.className());
@@ -154,8 +143,7 @@ public class DiscoveredOnlyTests {
 
         @Test
         void idOnlyJob() {
-            var def = registry.resolve("sample");
-            assertNotNull(def);
+            var def = assertNotEmpty(registry.resolve("sample"));
             assertEquals(Job.DEFAULT_GROUP, def.group());
             assertEquals("sample", def.id());
             assertEquals(DiscoveredOnlyTests.DefaultNoArgJobWithId.class.getName(), def.className());
