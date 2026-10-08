@@ -25,11 +25,6 @@ public class IgnoredDiscoveryTests {
     @Inject
     JobRegistry registry;
 
-    //    @BeforeEach
-    //    void setup() {
-    //        registry.init(null);
-    //    }
-
     @Singleton
     @Job(id = "process", groups = "payment")
     static class PaymentProcessor implements SelfContainedJob {

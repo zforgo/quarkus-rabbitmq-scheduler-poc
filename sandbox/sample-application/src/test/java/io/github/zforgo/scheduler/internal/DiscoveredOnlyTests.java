@@ -26,12 +26,7 @@ public class DiscoveredOnlyTests {
     @Inject
     JobRegistry registry;
 
-    //    @BeforeEach
-    //    void setup() {
-    //        registry.init(null);
-    //    }
-    //
-    @Job
+	@Job
     static class NonRegisteredJob implements SelfContainedJob {
 
         public void process() {
