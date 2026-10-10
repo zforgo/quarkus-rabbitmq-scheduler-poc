@@ -1,0 +1,54 @@
+quarkus:
+
+  datasource:
+    db-kind: postgresql
+    username: firqua
+    password: firqua1234
+    jdbc:
+      url: jdbc:postgresql://localhost:55432/firqua
+
+
+#rabbitmq-host: localhost
+#rabbitmq-port: 5672
+#rabbitmq-username: firqua
+#rabbitmq-password: firqua1234
+#
+#mp:
+#  messaging:
+##    incoming:
+##      requeue-requests:
+##        connector: smallrye-rabbitmq
+##        queue:
+##          name: scheduler-requeue
+##          declare: false
+##        exchange:
+##          declare: false
+#
+#    outgoing:
+##      requeued-jobs:
+##        connector: smallrye-rabbitmq
+##        exchange:
+##          name: scheduler-exchange
+##          declare: false
+#      scheduled-jobs: #for scheduling jobs
+#        connector: smallrye-rabbitmq
+#        exchange:
+#          name: scheduler-exchange
+#          declare: false
+#
+scheduler:
+  jobs:
+#    "default":
+#      - id: foo
+#        class: io.github.zforgo.application.SampleJob
+#      - id: bar
+#        class: io.github.zforgo.application.NoArgJob
+#    "payment":
+#      - id: baz
+#        class: io.github.zforgo.application.NonRegisteredJob
+#      - id: valami
+#        class: io.github.zforgo.scheduler.discovery.StartupBean
+  discovery:
+    enabled: true
+    strategy: merge
+
