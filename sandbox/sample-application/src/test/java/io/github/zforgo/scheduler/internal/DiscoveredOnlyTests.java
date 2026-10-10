@@ -26,7 +26,7 @@ public class DiscoveredOnlyTests {
     @Inject
     JobRegistry registry;
 
-	@Job
+    @Job
     static class NonRegisteredJob implements SelfContainedJob {
 
         public void process() {

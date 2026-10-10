@@ -65,8 +65,11 @@ public class JobRegistry {
         }
 
         if (!duplicates.isEmpty()) {
-            throw new JobRegistryException("Non-unique job ids found:%n - %s".formatted(
-                    duplicates.stream().map(Key::describe).collect(Collectors.joining("%n - ".formatted()))));
+            throw new JobRegistryException(
+                    "Non-unique job ids found:%n - %s".formatted(
+                            duplicates.stream().map(Key::describe).collect(Collectors.joining("%n - ".formatted()))
+                    )
+            );
         }
 
         definitions = List.copyOf(allJobs);
