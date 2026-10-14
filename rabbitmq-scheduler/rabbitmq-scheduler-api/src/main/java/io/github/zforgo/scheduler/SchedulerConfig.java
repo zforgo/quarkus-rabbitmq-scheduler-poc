@@ -21,6 +21,8 @@ public interface SchedulerConfig {
 
     DiscoveryConfig discovery();
 
+    TopologyConfig topology();
+
     interface DiscoveryConfig {
 
         @WithDefault("true")
@@ -48,5 +50,12 @@ public interface SchedulerConfig {
     enum DiscoverStrategy {
         MERGE,
         IGNORE //TODO probably FULFILL is better
+    }
+
+    interface TopologyConfig {
+
+        @WithDefault("true")
+        @WithName("requeue.enabled")
+        boolean requeue();
     }
 }

@@ -71,7 +71,12 @@ class FailuresTest {
                     }
                 };
             }
-        };
+
+	        @Override
+			public TopologyConfig topology() {
+				return null;
+			}
+		};
         return JobRegistry.from(config, discoveredJobs());
     }
 
