@@ -9,9 +9,17 @@ public interface JobScheduler {
         return schedule(jobId, null);
     }
 
-    UUID schedule(String jobId, Object payload);
+    default UUID schedule(String jobId, Object payload) {
+        return schedule(jobId, Job.DEFAULT_GROUP, payload);
+    }
 
-    UUID schedule(String jobId, Object payload, Duration delay);
+    UUID schedule(String jobId, String group, Object payload);
+
+    default UUID schedule(String jobId, Object payload, Duration delay) {
+        return schedule(jobId, Job.DEFAULT_GROUP, payload, delay);
+    }
+
+    UUID schedule(String jobId, String jobGroup, Object payload, Duration delay);
 }
 /*
  * schedule
@@ -26,7 +34,7 @@ public interface JobScheduler {
 /*
  * params
  * - payload (simple object)
- * - duration now@GMT + millis
+ * - duration now@UTC + millis
  * - zonedDateTime -> convert to UTC
  * - localDateTime -> zonedDateTime@LOCAL -> convert to UTC
  */

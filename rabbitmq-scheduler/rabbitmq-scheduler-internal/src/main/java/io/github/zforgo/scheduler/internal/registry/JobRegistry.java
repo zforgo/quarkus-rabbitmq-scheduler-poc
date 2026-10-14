@@ -76,7 +76,7 @@ public final class JobRegistry {
         return def;
     }
 
-    Optional<JobDefinition> resolve(String group, Class<? extends ScheduledJob<?>> jobClass) {
+    public Optional<JobDefinition> resolve(String group, Class<? extends ScheduledJob<?>> jobClass) {
         Objects.requireNonNull(group);
         Objects.requireNonNull(jobClass);
         var matches = definitions.values().stream()
@@ -92,15 +92,15 @@ public final class JobRegistry {
         return matches.isEmpty() ? Optional.empty() : Optional.of(matches.getFirst());
     }
 
-    Optional<JobDefinition> resolve(Class<? extends ScheduledJob<?>> jobClass) {
+    public Optional<JobDefinition> resolve(Class<? extends ScheduledJob<?>> jobClass) {
         return resolve(DEFAULT_GROUP, jobClass);
     }
 
-    Optional<JobDefinition> resolve(String group, String id) {
+    public Optional<JobDefinition> resolve(String group, String id) {
         return Optional.ofNullable(definitions.get(new Key(group, id)));
     }
 
-    Optional<JobDefinition> resolve(String id) {
+    public Optional<JobDefinition> resolve(String id) {
         return resolve(DEFAULT_GROUP, id);
     }
 

@@ -8,13 +8,13 @@ quarkus:
       url: jdbc:postgresql://localhost:55432/firqua
 
 
-#rabbitmq-host: localhost
-#rabbitmq-port: 5672
-#rabbitmq-username: firqua
-#rabbitmq-password: firqua1234
+rabbitmq-host: localhost
+rabbitmq-port: 5672
+rabbitmq-username: firqua
+rabbitmq-password: firqua1234
 #
-#mp:
-#  messaging:
+mp:
+  messaging:
 ##    incoming:
 ##      requeue-requests:
 ##        connector: smallrye-rabbitmq
@@ -24,17 +24,17 @@ quarkus:
 ##        exchange:
 ##          declare: false
 #
-#    outgoing:
+    outgoing:
 ##      requeued-jobs:
 ##        connector: smallrye-rabbitmq
 ##        exchange:
 ##          name: scheduler-exchange
 ##          declare: false
-#      scheduled-jobs: #for scheduling jobs
-#        connector: smallrye-rabbitmq
-#        exchange:
-#          name: scheduler-exchange
-#          declare: false
+      scheduled-jobs: #for scheduling jobs
+        connector: smallrye-rabbitmq
+        exchange:
+          name: scheduler-exchange
+          declare: false
 #
 scheduler:
   jobs:
