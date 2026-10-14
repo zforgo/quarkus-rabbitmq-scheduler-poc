@@ -3,12 +3,15 @@ package io.github.zforgo.scheduler.internal;
 import java.time.Instant;
 import java.util.UUID;
 
+import org.eclipse.microprofile.reactive.messaging.Message;
+
 import io.smallrye.mutiny.Uni;
 
 import io.github.zforgo.scheduler.JobState;
 import io.github.zforgo.scheduler.ScheduledJob;
 import io.github.zforgo.scheduler.SchedulerException;
 import io.github.zforgo.scheduler.internal.queue.QueueHandler;
+import io.github.zforgo.scheduler.internal.queue.QueuedItem;
 import io.github.zforgo.scheduler.internal.registry.JobDefinition;
 import io.github.zforgo.scheduler.internal.registry.JobRegistry;
 import io.github.zforgo.scheduler.internal.store.JobRecord;
@@ -51,7 +54,11 @@ final class SchedulerEngine implements AutoCloseable {
                 fireTime.toEpochMilli(), JobState.SCHEDULED);
         store.insert(record);
         return queueHandler.emit(record).replaceWith(record.id());
+    }
 
+    Uni<Message<QueuedItem>> nextTier(Message<QueuedItem> message) {
+        //TODO handle cancellation
+        return queueHandler.nextTier(message);
     }
 
     @Override

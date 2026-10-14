@@ -1,5 +1,10 @@
 package io.github.zforgo.scheduler.internal.queue;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.HashMap;
+
+import io.smallrye.reactive.messaging.rabbitmq.IncomingRabbitMQMetadata;
 import org.eclipse.microprofile.reactive.messaging.Message;
 
 import io.smallrye.mutiny.Uni;
@@ -28,6 +33,28 @@ public final class QueueHandler {
         return emitter.sendMessage(Message
                 .of(new QueuedItem(jobRecord.id(), jobRecord.fireTime()))
                 .addMetadata(meta));
-
     }
+
+    public Uni<Message<QueuedItem>> nextTier(Message<QueuedItem> message) {
+        var payload = message.getPayload();
+        var remaining = ChronoUnit.MILLIS.between(Instant.now(), Instant.ofEpochMilli(payload.fireTime()));
+        var nextTier = tierSelector.select(remaining);
+		return Uni.createFrom()
+				.item(
+						() -> message.getMetadata(IncomingRabbitMQMetadata.class)
+								.map(IncomingRabbitMQMetadata::getHeaders)
+								.map(HashMap::new)
+								.orElseGet(HashMap::new)
+				)
+				.map(
+						headers -> new OutgoingRabbitMQMetadata.Builder()
+								.withContentType("application/json")
+								.withHeaders(headers)
+								.withHeader("job-tier", nextTier.tier())
+								.build()
+				)
+				.map(message::addMetadata);
+
+
+	}
 }

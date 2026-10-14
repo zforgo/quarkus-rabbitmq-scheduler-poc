@@ -81,7 +81,12 @@ class IgnoredDiscoveryTests {
                     }
                 };
             }
-        };
+
+	        @Override
+			public TopologyConfig topology() {
+				return null;
+			}
+		};
 
         var discoveredJobs = Stream.of(
                 JobDefinition.of(DefaultNoArgJob.class),

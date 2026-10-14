@@ -29,4 +29,10 @@ public class TriggerResource {
     public UUID threeMins(Integer payload) {
         return scheduler.schedule("sample", payload, Duration.ofMinutes(3));
     }
+
+    @POST
+    @Path("/1min")
+    public UUID oneMin(Integer payload) {
+        return scheduler.schedule("sample", payload, Duration.ofMinutes(1));
+    }
 }
