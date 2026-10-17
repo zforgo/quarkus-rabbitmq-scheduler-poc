@@ -1,8 +1,6 @@
 package io.github.zforgo.scheduler.internal.registry;
 
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -11,7 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 
 import io.github.zforgo.scheduler.Job;
-import io.github.zforgo.scheduler.SchedulerConfig;
+import io.github.zforgo.scheduler.ScheduledJob;
 import io.github.zforgo.scheduler.internal.registry.jobs.DefaultNoArgJob;
 import io.github.zforgo.scheduler.internal.registry.jobs.DefaultNoArgJobWithId;
 import io.github.zforgo.scheduler.internal.registry.jobs.NonRegisteredJob;
@@ -20,59 +18,27 @@ import io.github.zforgo.scheduler.internal.registry.jobs.WarehouseCleanupJob;
 
 import static io.github.zforgo.scheduler.internal.Assertions.assertEmpty;
 import static io.github.zforgo.scheduler.internal.Assertions.assertNotEmpty;
+import static io.github.zforgo.scheduler.internal.ConfigurationUtil.definitions;
+import static io.github.zforgo.scheduler.internal.ConfigurationUtil.emptyConfig;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @DisplayName("Discovered jobs without config")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class DiscoveredOnlyTests {
 
+    private static final List<Class<? extends ScheduledJob<?>>> discoveredJobs = List.of(
+            DefaultNoArgJob.class,
+            DefaultNoArgJobWithId.class,
+            NonRegisteredJob.class,
+            PaymentCleanupJob.class,
+            WarehouseCleanupJob.class
+    );
+
     private JobRegistry registry;
 
     @BeforeAll
     void setUp() {
-        var config = new SchedulerConfig() {
-
-            @Override
-            public Map<String, List<JobCoordinate>> jobs() {
-                return Map.of();
-            }
-
-            @Override
-            public StoreConfig store() {
-                return null;
-            }
-
-            @Override
-            public DiscoveryConfig discovery() {
-                return new DiscoveryConfig() {
-
-                    @Override
-                    public boolean enabled() {
-                        return false;
-                    }
-
-                    @Override
-                    public DiscoverStrategy strategy() {
-                        return DiscoverStrategy.MERGE;
-                    }
-                };
-            }
-
-	        @Override
-			public TopologyConfig topology() {
-				return null;
-			}
-		};
-
-        var discoveredJobs = Stream.of(
-                JobDefinition.of(DefaultNoArgJob.class),
-                JobDefinition.of(DefaultNoArgJobWithId.class),
-                JobDefinition.of(NonRegisteredJob.class),
-                JobDefinition.of(PaymentCleanupJob.class),
-                JobDefinition.of(WarehouseCleanupJob.class)
-
-        ).flatMap(s -> s).toList();
-        registry = JobRegistry.from(config, discoveredJobs);
+        registry = JobRegistry.from(emptyConfig(), definitions(discoveredJobs));
     }
 
     @Nested

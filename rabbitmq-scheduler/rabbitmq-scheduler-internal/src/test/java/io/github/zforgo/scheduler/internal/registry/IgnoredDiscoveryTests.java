@@ -2,8 +2,6 @@ package io.github.zforgo.scheduler.internal.registry;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -12,7 +10,6 @@ import org.junit.jupiter.api.TestInstance;
 
 import io.github.zforgo.scheduler.Job;
 import io.github.zforgo.scheduler.ScheduledJob;
-import io.github.zforgo.scheduler.SchedulerConfig;
 import io.github.zforgo.scheduler.internal.registry.jobs.DefaultNoArgJob;
 import io.github.zforgo.scheduler.internal.registry.jobs.DefaultNoArgJobWithId;
 import io.github.zforgo.scheduler.internal.registry.jobs.MultiGroupCleanupJob;
@@ -21,8 +18,12 @@ import io.github.zforgo.scheduler.internal.registry.jobs.PaymentCleanupJob;
 import io.github.zforgo.scheduler.internal.registry.jobs.PaymentProcessor;
 import io.github.zforgo.scheduler.internal.registry.jobs.WarehouseCleanupJob;
 
+import static io.github.zforgo.scheduler.SchedulerConfig.DiscoverStrategy.IGNORE;
 import static io.github.zforgo.scheduler.internal.Assertions.assertEmpty;
 import static io.github.zforgo.scheduler.internal.Assertions.assertNotEmpty;
+import static io.github.zforgo.scheduler.internal.ConfigurationUtil.config;
+import static io.github.zforgo.scheduler.internal.ConfigurationUtil.coordinate;
+import static io.github.zforgo.scheduler.internal.ConfigurationUtil.definitions;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -30,75 +31,29 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class IgnoredDiscoveryTests {
 
+    private static final List<Class<? extends ScheduledJob<?>>> discoveredJobs = List.of(
+            DefaultNoArgJob.class,
+            DefaultNoArgJobWithId.class,
+            NonRegisteredJob.class,
+            PaymentProcessor.class,
+            PaymentCleanupJob.class,
+            WarehouseCleanupJob.class,
+            MultiGroupCleanupJob.class
+    );
+
     private JobRegistry registry;
-
-    private static SchedulerConfig.JobCoordinate coordinate(String id, Class<? extends ScheduledJob<?>> clazz) {
-        return new SchedulerConfig.JobCoordinate() {
-
-            @Override
-            public Optional<String> id() {
-                return Optional.ofNullable(id);
-            }
-
-            @Override
-            public Optional<String> className() {
-                return Optional.ofNullable(clazz)
-                        .map(Class::getName);
-            }
-        };
-    }
 
     @BeforeAll
     void setUp() {
-        var config = new SchedulerConfig() {
-
-            @Override
-            public Map<String, List<JobCoordinate>> jobs() {
-                return Map.of("payment", List.of(
+        var jobs = Map.of(
+                "payment", List.of(
                         coordinate("process", null),
                         coordinate("clean", null)),
-                        "default", List.of(coordinate("given-id", WarehouseCleanupJob.class))
-                );
-            }
+                "default", List.of(coordinate("given-id", WarehouseCleanupJob.class))
+        );
+        var config = config(jobs, IGNORE);
 
-            @Override
-            public StoreConfig store() {
-                return null;
-            }
-
-            @Override
-            public DiscoveryConfig discovery() {
-                return new DiscoveryConfig() {
-
-                    @Override
-                    public boolean enabled() {
-                        return false;
-                    }
-
-                    @Override
-                    public DiscoverStrategy strategy() {
-                        return DiscoverStrategy.IGNORE;
-                    }
-                };
-            }
-
-	        @Override
-			public TopologyConfig topology() {
-				return null;
-			}
-		};
-
-        var discoveredJobs = Stream.of(
-                JobDefinition.of(DefaultNoArgJob.class),
-                JobDefinition.of(DefaultNoArgJobWithId.class),
-                JobDefinition.of(NonRegisteredJob.class),
-                JobDefinition.of(PaymentProcessor.class),
-                JobDefinition.of(PaymentCleanupJob.class),
-                JobDefinition.of(WarehouseCleanupJob.class),
-                JobDefinition.of(MultiGroupCleanupJob.class)
-
-        ).flatMap(s -> s).toList();
-        registry = JobRegistry.from(config, discoveredJobs);
+        registry = JobRegistry.from(config, definitions(discoveredJobs));
     }
 
     @Test

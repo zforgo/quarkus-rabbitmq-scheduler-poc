@@ -4,11 +4,11 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 
-import io.smallrye.reactive.messaging.rabbitmq.IncomingRabbitMQMetadata;
 import org.eclipse.microprofile.reactive.messaging.Message;
 
 import io.smallrye.mutiny.Uni;
 import io.smallrye.reactive.messaging.MutinyEmitter;
+import io.smallrye.reactive.messaging.rabbitmq.IncomingRabbitMQMetadata;
 import io.smallrye.reactive.messaging.rabbitmq.OutgoingRabbitMQMetadata;
 
 import io.github.zforgo.scheduler.internal.store.JobRecord;
@@ -39,22 +39,21 @@ public final class QueueHandler {
         var payload = message.getPayload();
         var remaining = ChronoUnit.MILLIS.between(Instant.now(), Instant.ofEpochMilli(payload.fireTime()));
         var nextTier = tierSelector.select(remaining);
-		return Uni.createFrom()
-				.item(
-						() -> message.getMetadata(IncomingRabbitMQMetadata.class)
-								.map(IncomingRabbitMQMetadata::getHeaders)
-								.map(HashMap::new)
-								.orElseGet(HashMap::new)
-				)
-				.map(
-						headers -> new OutgoingRabbitMQMetadata.Builder()
-								.withContentType("application/json")
-								.withHeaders(headers)
-								.withHeader("job-tier", nextTier.tier())
-								.build()
-				)
-				.map(message::addMetadata);
+        return Uni.createFrom()
+                .item(
+                        () -> message.getMetadata(IncomingRabbitMQMetadata.class)
+                                .map(IncomingRabbitMQMetadata::getHeaders)
+                                .map(HashMap::new)
+                                .orElseGet(HashMap::new)
+                )
+                .map(
+                        headers -> new OutgoingRabbitMQMetadata.Builder()
+                                .withContentType("application/json")
+                                .withHeaders(headers)
+                                .withHeader("job-tier", nextTier.tier())
+                                .build()
+                )
+                .map(message::addMetadata);
 
-
-	}
+    }
 }
