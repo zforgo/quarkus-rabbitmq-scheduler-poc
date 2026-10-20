@@ -27,7 +27,6 @@ import io.github.zforgo.scheduler.SchedulerConfig;
 import io.github.zforgo.scheduler.internal.consume.JobExecutionHandler;
 import io.github.zforgo.scheduler.internal.consume.WorkerManager;
 import io.github.zforgo.scheduler.internal.queue.QueueHandler;
-import io.github.zforgo.scheduler.internal.queue.QueuedItem;
 import io.github.zforgo.scheduler.internal.queue.TierSelector;
 import io.github.zforgo.scheduler.internal.registry.JobDefinition;
 import io.github.zforgo.scheduler.internal.registry.JobRegistry;
@@ -41,7 +40,7 @@ class SchedulerWiring {
 
     @Inject
     @Channel("scheduled-jobs")
-    MutinyEmitter<QueuedItem> emitter;
+    MutinyEmitter<byte[]> emitter;
 
     @Produces
     @Singleton

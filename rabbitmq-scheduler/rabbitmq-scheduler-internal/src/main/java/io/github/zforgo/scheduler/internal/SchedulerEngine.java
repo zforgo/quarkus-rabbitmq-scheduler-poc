@@ -11,7 +11,6 @@ import io.github.zforgo.scheduler.JobState;
 import io.github.zforgo.scheduler.ScheduledJob;
 import io.github.zforgo.scheduler.SchedulerException;
 import io.github.zforgo.scheduler.internal.queue.QueueHandler;
-import io.github.zforgo.scheduler.internal.queue.QueuedItem;
 import io.github.zforgo.scheduler.internal.registry.JobDefinition;
 import io.github.zforgo.scheduler.internal.registry.JobRegistry;
 import io.github.zforgo.scheduler.internal.store.JobRecord;
@@ -56,7 +55,7 @@ final class SchedulerEngine implements AutoCloseable {
         return queueHandler.emit(record).replaceWith(record.id());
     }
 
-    Uni<Message<QueuedItem>> nextTier(Message<QueuedItem> message) {
+    Uni<Message<byte[]>> nextTier(Message<byte[]> message) {
         //TODO handle cancellation
         return queueHandler.nextTier(message);
     }

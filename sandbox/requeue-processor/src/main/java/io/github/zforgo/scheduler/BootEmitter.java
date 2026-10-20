@@ -25,7 +25,6 @@ public class BootEmitter {
         final var delay = Duration.ofSeconds(153L);
         var tier = TierSelector.select(delay.toMillis());
         var meta = new OutgoingRabbitMQMetadata.Builder()
-                .withContentType("application/json")
                 .withHeader("job-tier", tier.tier())
                 .withHeader("job-group", "payment")
                 .build();
