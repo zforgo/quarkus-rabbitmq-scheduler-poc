@@ -12,13 +12,14 @@ import io.smallrye.reactive.messaging.rabbitmq.IncomingRabbitMQMetadata;
 import io.smallrye.reactive.messaging.rabbitmq.OutgoingRabbitMQMetadata;
 
 import io.github.zforgo.scheduler.internal.store.JobRecord;
+import io.github.zforgo.scheduler.internal.transport.QueuedItemCodec;
 
 public final class QueueHandler {
 
-    private final MutinyEmitter<QueuedItem> emitter;
+    private final MutinyEmitter<byte[]> emitter;
     private final TierSelector tierSelector;
 
-    public QueueHandler(MutinyEmitter<QueuedItem> emitter, TierSelector tierSelector) {
+    public QueueHandler(MutinyEmitter<byte[]> emitter, TierSelector tierSelector) {
         this.emitter = emitter;
         this.tierSelector = tierSelector;
     }
@@ -26,17 +27,16 @@ public final class QueueHandler {
     public Uni<Void> emit(JobRecord jobRecord) {
         var tier = tierSelector.select(jobRecord.scheduledTime(), jobRecord.fireTime());
         var meta = new OutgoingRabbitMQMetadata.Builder()
-                .withContentType("application/json")
                 .withHeader("job-tier", tier.tier())
                 .withHeader("job-group", jobRecord.jobGroup())
                 .build();
         return emitter.sendMessage(Message
-                .of(new QueuedItem(jobRecord.id(), jobRecord.fireTime()))
+                .of(QueuedItemCodec.encode(new QueuedItem(jobRecord.id(), jobRecord.fireTime())))
                 .addMetadata(meta));
     }
 
-    public Uni<Message<QueuedItem>> nextTier(Message<QueuedItem> message) {
-        var payload = message.getPayload();
+    public Uni<Message<byte[]>> nextTier(Message<byte[]> message) {
+        var payload = QueuedItemCodec.decode(message.getPayload());
         var remaining = ChronoUnit.MILLIS.between(Instant.now(), Instant.ofEpochMilli(payload.fireTime()));
         var nextTier = tierSelector.select(remaining);
         return Uni.createFrom()
@@ -48,7 +48,6 @@ public final class QueueHandler {
                 )
                 .map(
                         headers -> new OutgoingRabbitMQMetadata.Builder()
-                                .withContentType("application/json")
                                 .withHeaders(headers)
                                 .withHeader("job-tier", nextTier.tier())
                                 .build()

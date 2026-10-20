@@ -30,7 +30,6 @@ public class RequeueProcessor {
                 )
                 .map(
                         headers -> new OutgoingRabbitMQMetadata.Builder()
-                                .withContentType("application/json")
                                 .withHeaders(headers)
                                 .withHeader("job-tier", nextTier.tier())
                                 .build()
