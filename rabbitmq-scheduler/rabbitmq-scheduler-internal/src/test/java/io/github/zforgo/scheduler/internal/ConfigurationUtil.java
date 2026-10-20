@@ -58,6 +58,15 @@ public class ConfigurationUtil {
                 return jobs;
             }
 
+            public BrokerConfig broker() {
+                return null;
+            }
+
+            @Override
+            public WorkerConfig worker() {
+                return null;
+            }
+
             @Override
             public StoreConfig store() {
                 return null;
