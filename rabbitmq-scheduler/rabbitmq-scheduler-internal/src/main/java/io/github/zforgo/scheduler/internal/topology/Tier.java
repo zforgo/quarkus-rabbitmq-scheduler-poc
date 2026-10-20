@@ -4,13 +4,13 @@ import java.time.Duration;
 
 import io.quarkus.runtime.configuration.DurationConverter;
 
-public record TopologyItem(long millis, String tier) {
+public record Tier(long millis, String tier) {
 
-    TopologyItem(Duration duration, String tier) {
+    Tier(Duration duration, String tier) {
         this(duration.toMillis(), tier);
     }
 
-    TopologyItem(String tier) {
+    Tier(String tier) {
         this(DurationConverter.parseDuration(tier), tier);
     }
 }

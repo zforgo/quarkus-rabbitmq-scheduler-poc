@@ -6,19 +6,19 @@ import java.util.stream.Stream;
 
 public final class TierSelector {
 
-    private static final TopologyItem immediate = new TopologyItem(-1L, "dispatch");
-    private final LinkedList<TopologyItem> selectors;
+    private static final Tier immediate = new Tier(-1L, "dispatch");
+    private final LinkedList<Tier> selectors;
 
     TierSelector() {
         selectors = Stream.of(
-                new TopologyItem("15s"),
-                new TopologyItem("2m"),
-                new TopologyItem("30m"),
-                new TopologyItem("1h"),
-                new TopologyItem("2h"),
-                new TopologyItem("5h"),
-                new TopologyItem("1d"),
-                new TopologyItem("7d")
+                new Tier("15s"),
+                new Tier("2m"),
+                new Tier("30m"),
+                new Tier("1h"),
+                new Tier("2h"),
+                new Tier("5h"),
+                new Tier("1d"),
+                new Tier("7d")
         ).distinct()
                 //descendant by ttl
                 .sorted((a, b) -> Math.toIntExact(b.millis() - a.millis()))
@@ -26,7 +26,7 @@ public final class TierSelector {
 
     }
 
-    public TopologyItem select(long remaining) {
+    public Tier select(long remaining) {
         return selectors.stream()
                 .filter(item -> item.millis() < remaining)
                 .findAny().orElse(immediate);

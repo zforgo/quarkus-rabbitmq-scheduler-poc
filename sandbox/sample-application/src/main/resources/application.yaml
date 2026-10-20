@@ -37,10 +37,14 @@ mp:
           declare: false
 
 scheduler:
+  worker:
+    concurrency: 20
+    groups:
+      - name: default
   topology:
     requeue:
       enabled: true
-  jobs:
+#  jobs:
 #    "default":
 #      - id: foo
 #        class: io.github.zforgo.application.SampleJob

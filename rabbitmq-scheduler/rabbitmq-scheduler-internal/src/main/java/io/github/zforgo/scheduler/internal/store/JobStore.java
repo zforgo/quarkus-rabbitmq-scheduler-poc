@@ -11,5 +11,7 @@ public interface JobStore {
 
     Optional<JobRecord> find(UUID id);
 
+    Optional<JobState> state(UUID id);
+
     boolean transition(UUID id, JobState expected, JobState target);
 }
