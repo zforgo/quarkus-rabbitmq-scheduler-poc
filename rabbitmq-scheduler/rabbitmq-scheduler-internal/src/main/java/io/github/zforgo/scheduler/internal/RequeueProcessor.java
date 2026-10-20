@@ -10,8 +10,6 @@ import org.eclipse.microprofile.reactive.messaging.Outgoing;
 import io.quarkus.arc.properties.IfBuildProperty;
 import io.smallrye.mutiny.Uni;
 
-import io.github.zforgo.scheduler.internal.queue.QueuedItem;
-
 @ApplicationScoped
 @IfBuildProperty(name = "scheduler.topology.requeue.enabled", stringValue = "true", enableIfMissing = true)
 class RequeueProcessor {
@@ -21,7 +19,7 @@ class RequeueProcessor {
 
     @Incoming("requeue-requests")
     @Outgoing("requeued-jobs")
-    public Uni<Message<QueuedItem>> process(Message<QueuedItem> message) {
+    public Uni<Message<byte[]>> process(Message<byte[]> message) {
         return engine.nextTier(message);
     }
 }
