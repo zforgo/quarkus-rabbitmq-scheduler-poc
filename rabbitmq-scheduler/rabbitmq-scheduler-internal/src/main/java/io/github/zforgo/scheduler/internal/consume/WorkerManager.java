@@ -20,7 +20,6 @@ public final class WorkerManager {
         this.handler = handler;
     }
 
-    //TODO implement
     public void start(Connection connection) {
         if (!config.enabled()) {
             return;
