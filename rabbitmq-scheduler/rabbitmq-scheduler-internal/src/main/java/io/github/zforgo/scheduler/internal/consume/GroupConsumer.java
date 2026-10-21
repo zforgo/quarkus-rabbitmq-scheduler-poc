@@ -1,7 +1,6 @@
 package io.github.zforgo.scheduler.internal.consume;
 
 import java.io.IOException;
-import java.util.UUID;
 import java.util.concurrent.Executor;
 import java.util.concurrent.RejectedExecutionException;
 
@@ -14,6 +13,8 @@ import io.quarkus.logging.Log;
 
 import io.github.zforgo.scheduler.SchedulerConfig.WorkerConfig.WorkerGroup;
 import io.github.zforgo.scheduler.SchedulerException;
+import io.github.zforgo.scheduler.internal.queue.QueuedItem;
+import io.github.zforgo.scheduler.internal.transport.QueuedItemCodec;
 
 final class GroupConsumer extends DefaultConsumer {
 
@@ -42,26 +43,41 @@ final class GroupConsumer extends DefaultConsumer {
     @Override
     public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) {
         var deliveryTag = envelope.getDeliveryTag();
-        // TODO decode
-        final var id = UUID.randomUUID();
-        if (executionHandler.canProceed(id)) {
-            try {
-                executor.execute(() -> {
-                    try {
-                        executionHandler.proceed(id);
-                        ack(deliveryTag);
-                    } catch (JobExecutionPreconditionException e) {
-                        Log.errorf(e, "Job precondition failed for id: %s", id);
-                        nack(deliveryTag);
-                    }
-                });
-            } catch (RejectedExecutionException e) {
-                Log.warnf("Concurrency limit exceeded on group: %s ", group.name());
-                requeue(deliveryTag);
-            }
-        } else {
-            Log.debugf("Job execution skipped silently for id: %s", id);
-            ack(deliveryTag);
+        try {
+            executor.execute(() -> {
+                QueuedItem queuedItem;
+                try {
+                    queuedItem = QueuedItemCodec.decode(body);
+                } catch (RuntimeException e) {
+                    Log.errorf(e, "Malformed message on group %s", group.name());
+                    nack(deliveryTag);
+                    return;
+                }
+
+                final var id = queuedItem.id();
+                try {
+                    executionHandler.createRequest(id).ifPresentOrElse(
+                            request -> {
+                                ack(deliveryTag);
+                                executionHandler.proceed(request);
+
+                            },
+                            () -> {
+                                Log.debugf("Job execution skipped silently for id: %s", id);
+                                ack(deliveryTag);
+                            });
+
+                } catch (JobExecutionPreconditionException e) {
+                    Log.errorf(e, "Job precondition failed for id: %s", id);
+                    nack(deliveryTag);
+                } catch (RuntimeException e) {
+                    Log.warnf(e, "Cannot process job %s, requeueing", id);
+                    requeue(deliveryTag); // claim not taken: safe to retry
+                }
+            });
+        } catch (RejectedExecutionException e) {
+            Log.warnf("Concurrency limit exceeded on group: %s ", group.name());
+            requeue(deliveryTag);
         }
 
     }

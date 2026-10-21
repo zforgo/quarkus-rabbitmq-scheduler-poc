@@ -1,13 +1,14 @@
 package io.github.zforgo.scheduler.internal.consume;
 
+import java.util.Optional;
 import java.util.UUID;
 
-import io.quarkus.logging.Log;
 import jakarta.enterprise.inject.Any;
 import jakarta.enterprise.util.TypeLiteral;
 
 import io.quarkus.arc.Arc;
 import io.quarkus.arc.InstanceHandle;
+import io.quarkus.logging.Log;
 
 import io.github.zforgo.scheduler.JobState;
 import io.github.zforgo.scheduler.ScheduledJob;
@@ -29,7 +30,7 @@ public final class JobExecutionHandler {
         this.codec = codec;
     }
 
-    public boolean canProceed(UUID id) {
+    private boolean canProceed(UUID id) {
         var state = store.state(id).orElseThrow(() -> new SchedulerException("No such job id " + id));
         var result = switch (state) {
             case SCHEDULED -> true;
@@ -42,15 +43,24 @@ public final class JobExecutionHandler {
         return result;
     }
 
-    void proceed(UUID id) {
+    Optional<JobExecutionRequest> createRequest(UUID id) {
+        if (!canProceed(id)) {
+            return Optional.empty();
+        }
         var record = store.find(id).orElseThrow(() -> new JobExecutionPreconditionException("No such job by id " + id));
         var instance = select(record.jobId(), record.jobGroup());
         var payload = decodePayload(record.payload());
+        return Optional.of(new JobExecutionRequest(id, record.jobId(), record.jobGroup(), instance, payload));
+    }
+
+    void proceed(JobExecutionRequest request) throws SchedulerException {
         try {
-            invoke(instance, payload);
-        } catch (Exception e) {
-			Log.error("Job execution [{}] has been failed", id, e);
-			//TODO redelivery if necessary
+            invoke(request.instance(), request.payload());
+            store.transition(request.id(), JobState.SCHEDULED, JobState.FINISHED);
+        } catch (Throwable t) {
+			//TODO handle special errors like: OOM-> rethrow, Interrupted->interrupt
+            Log.error("Job execution [{}] has been failed", request.id(), t);
+            //TODO redelivery if necessary
         }
     }
 
