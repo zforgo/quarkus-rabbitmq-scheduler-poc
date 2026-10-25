@@ -13,7 +13,7 @@ import io.quarkus.logging.Log;
 
 import io.github.zforgo.scheduler.SchedulerConfig.WorkerConfig.WorkerGroup;
 import io.github.zforgo.scheduler.SchedulerException;
-import io.github.zforgo.scheduler.internal.queue.QueuedItem;
+import io.github.zforgo.scheduler.internal.transport.QueuedItem;
 import io.github.zforgo.scheduler.internal.transport.QueuedItemCodec;
 
 final class GroupConsumer extends DefaultConsumer {
@@ -96,7 +96,6 @@ final class GroupConsumer extends DefaultConsumer {
                 getChannel().basicNack(tag, false, requeue);
             } catch (IOException e) { /* channel gone → broker redelivers */ } //TODO
         }
-
     }
 
     private void ack(long tag) {

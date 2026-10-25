@@ -43,7 +43,7 @@ class HibernateStore implements JobStore {
     }
 
     @Override
-	@Transactional
+    @Transactional
     public Optional<JobState> state(UUID id) {
         return Optional.ofNullable(
                 em.createQuery("select e.state from JobEntity e where e.id = :id", JobState.class)
@@ -53,7 +53,7 @@ class HibernateStore implements JobStore {
     }
 
     @Override
-	@Transactional(TxType.REQUIRES_NEW)
+    @Transactional(TxType.REQUIRES_NEW)
     public boolean transition(UUID id, JobState expected, JobState target) {
         return em.createQuery("update JobEntity j set j.state = :target where j.id = :id and j.state = :expected")
                 .setParameter("id", id)

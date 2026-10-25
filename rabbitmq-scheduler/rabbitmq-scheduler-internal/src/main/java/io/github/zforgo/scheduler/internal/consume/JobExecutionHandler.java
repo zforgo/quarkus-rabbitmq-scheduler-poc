@@ -58,7 +58,7 @@ public final class JobExecutionHandler {
             invoke(request.instance(), request.payload());
             store.transition(request.id(), JobState.SCHEDULED, JobState.FINISHED);
         } catch (Throwable t) {
-			//TODO handle special errors like: OOM-> rethrow, Interrupted->interrupt
+            //TODO handle special errors like: OOM-> rethrow, Interrupted->interrupt
             Log.error("Job execution [{}] has been failed", request.id(), t);
             //TODO redelivery if necessary
         }

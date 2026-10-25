@@ -1,4 +1,4 @@
-package io.github.zforgo.scheduler.internal.queue;
+package io.github.zforgo.scheduler.internal.transport;
 
 import java.util.UUID;
 
