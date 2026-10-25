@@ -117,14 +117,15 @@ public interface SchedulerConfig {
         Optional<String> className();
     }
 
+    //TODO  better enum names
     enum DiscoverStrategy {
         MERGE,
-        IGNORE //TODO probably FULFILL is better
+        IGNORE
     }
 
     interface TopologyConfig {
 
-        @WithDefault("scheduler-exchange") //TODO use higher level config as default
+        @WithDefault("scheduler-exchange")
         String outgoingExchangeName();
 
         RequeueConfig requeue();
