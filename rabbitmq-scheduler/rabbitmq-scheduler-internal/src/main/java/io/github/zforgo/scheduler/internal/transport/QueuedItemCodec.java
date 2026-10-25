@@ -4,7 +4,6 @@ import java.nio.ByteBuffer;
 import java.util.UUID;
 
 import io.github.zforgo.scheduler.SchedulerException;
-import io.github.zforgo.scheduler.internal.queue.QueuedItem;
 
 public final class QueuedItemCodec {
 

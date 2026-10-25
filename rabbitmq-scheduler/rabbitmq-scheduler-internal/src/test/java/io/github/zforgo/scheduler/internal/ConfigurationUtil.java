@@ -58,6 +58,11 @@ public class ConfigurationUtil {
                 return jobs;
             }
 
+            @Override
+            public boolean schedulingEnabled() {
+                return false;
+            }
+
             public BrokerConfig broker() {
                 return null;
             }

@@ -9,13 +9,13 @@ import com.rabbitmq.client.Connection;
 import io.github.zforgo.scheduler.SchedulerConfig;
 import io.github.zforgo.scheduler.SchedulerException;
 
-public final class WorkerManager {
+public final class ConsumerWorker {
 
     private final List<GroupConsumer> consumers = new ArrayList<>();
     private final SchedulerConfig.WorkerConfig config;
     private final JobExecutionHandler handler;
 
-    public WorkerManager(SchedulerConfig.WorkerConfig config, JobExecutionHandler handler) {
+    public ConsumerWorker(SchedulerConfig.WorkerConfig config, JobExecutionHandler handler) {
         this.config = config;
         this.handler = handler;
     }

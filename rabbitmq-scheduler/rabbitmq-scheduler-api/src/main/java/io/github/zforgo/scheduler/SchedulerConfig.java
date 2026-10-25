@@ -18,6 +18,9 @@ public interface SchedulerConfig {
     @WithUnnamedKey(DEFAULT_GROUP)
     Map<String, List<JobCoordinate>> jobs();
 
+    @WithDefault("true")
+    boolean schedulingEnabled();
+
     BrokerConfig broker();
 
     WorkerConfig worker();
@@ -121,8 +124,33 @@ public interface SchedulerConfig {
 
     interface TopologyConfig {
 
-        @WithDefault("true")
-        @WithName("requeue.enabled")
-        boolean requeue();
+        @WithDefault("scheduler-exchange") //TODO use higher level config as default
+        String outgoingExchangeName();
+
+        RequeueConfig requeue();
+
+        interface RequeueConfig {
+
+            @WithDefault("true")
+            boolean enabled();
+
+            @WithDefault("scheduler-requeue")
+            String incomingQueueName();
+        }
+
+        interface TierConfigItem {
+
+            @WithName("tier")
+            String tier();
+
+            Duration duration();
+
+            @WithName("queue-name")
+            Optional<String> queueNameValue();
+
+            default String queueName() {
+                return queueNameValue().orElse("scheduled-tier-" + tier());
+            }
+        }
     }
 }

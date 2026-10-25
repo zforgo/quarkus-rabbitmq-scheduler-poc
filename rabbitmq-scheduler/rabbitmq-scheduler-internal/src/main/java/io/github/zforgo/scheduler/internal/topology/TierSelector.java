@@ -9,7 +9,7 @@ public final class TierSelector {
     private static final Tier immediate = new Tier(-1L, "dispatch");
     private final LinkedList<Tier> selectors;
 
-    TierSelector() {
+    public TierSelector() {
         selectors = Stream.of(
                 new Tier("15s"),
                 new Tier("2m"),
@@ -24,6 +24,10 @@ public final class TierSelector {
                 .sorted((a, b) -> Math.toIntExact(b.millis() - a.millis()))
                 .collect(Collectors.toCollection(LinkedList::new));
 
+    }
+
+    public Tier select(long scheduledTime, long fireTime) {
+        return select(fireTime - scheduledTime);
     }
 
     public Tier select(long remaining) {

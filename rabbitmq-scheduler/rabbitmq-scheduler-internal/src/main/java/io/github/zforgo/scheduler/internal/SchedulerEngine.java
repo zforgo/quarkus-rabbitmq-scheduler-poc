@@ -3,32 +3,41 @@ package io.github.zforgo.scheduler.internal;
 import java.time.Instant;
 import java.util.UUID;
 
-import org.eclipse.microprofile.reactive.messaging.Message;
-
 import io.smallrye.mutiny.Uni;
 
 import io.github.zforgo.scheduler.JobState;
 import io.github.zforgo.scheduler.ScheduledJob;
 import io.github.zforgo.scheduler.SchedulerException;
-import io.github.zforgo.scheduler.internal.queue.QueueHandler;
+import io.github.zforgo.scheduler.internal.consume.ConsumerWorker;
+import io.github.zforgo.scheduler.internal.publish.PublisherWorker;
 import io.github.zforgo.scheduler.internal.registry.JobDefinition;
 import io.github.zforgo.scheduler.internal.registry.JobRegistry;
 import io.github.zforgo.scheduler.internal.store.JobRecord;
 import io.github.zforgo.scheduler.internal.store.JobStore;
 import io.github.zforgo.scheduler.internal.store.PayloadCodec;
+import io.github.zforgo.scheduler.internal.transport.BrokerConnections;
 
 final class SchedulerEngine implements AutoCloseable {
 
+    private final BrokerConnections connections;
     private final JobRegistry registry;
     private final PayloadCodec codec;
     private final JobStore store;
-    private final QueueHandler queueHandler;
+    private final PublisherWorker publisherWorker;
+    private final ConsumerWorker consumerWorker;
 
-    public SchedulerEngine(JobRegistry registry, PayloadCodec codec, JobStore store, QueueHandler queueHandler) {
+    public SchedulerEngine(
+            BrokerConnections connections,
+            PublisherWorker publisher,
+            ConsumerWorker workerManager,
+            JobRegistry registry, PayloadCodec codec, JobStore store
+    ) {
+        this.connections = connections;
         this.registry = registry;
         this.codec = codec;
         this.store = store;
-        this.queueHandler = queueHandler;
+        this.publisherWorker = publisher;
+        this.consumerWorker = workerManager;
     }
 
     Uni<UUID> schedule(Class<? extends ScheduledJob<?>> jobClass, String jobGroup, Object payload, Instant fireTime) {
@@ -52,12 +61,13 @@ final class SchedulerEngine implements AutoCloseable {
         var record = new JobRecord(id, coordinates.id(), coordinates.group(), encoded, now.toEpochMilli(),
                 fireTime.toEpochMilli(), JobState.SCHEDULED);
         store.insert(record);
-        return queueHandler.emit(record).replaceWith(record.id());
+        return publisherWorker.emit(record).replaceWith(record.id());
     }
 
-    Uni<Message<byte[]>> nextTier(Message<byte[]> message) {
-        //TODO handle cancellation
-        return queueHandler.nextTier(message);
+    public void start() {
+        connections.open();
+        publisherWorker.start(connections.publishing());
+        consumerWorker.start(connections.consuming());
     }
 
     @Override

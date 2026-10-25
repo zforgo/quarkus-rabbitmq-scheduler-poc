@@ -12,6 +12,9 @@
     <artifactId>rabbitmq-scheduler-poc-internal</artifactId>
     <packaging>jar</packaging>
 
+    <properties>
+        <rabbirmq-client.version>5.37.0</rabbirmq-client.version>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -19,9 +22,18 @@
             <artifactId>quarkus-arc</artifactId>
         </dependency>
         <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-tls-registry</artifactId>
+        </dependency>
+        <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>rabbitmq-scheduler-poc-api</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.rabbitmq</groupId>
+            <artifactId>amqp-client</artifactId>
+            <version>${rabbirmq-client.version}</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.serializer</groupId>
@@ -31,15 +43,6 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-hibernate-orm</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-messaging-rabbitmq</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.smallrye.reactive</groupId>
-            <artifactId>smallrye-reactive-messaging-jackson</artifactId>
         </dependency>
         <dependency>
             <groupId>org.hamcrest</groupId>
