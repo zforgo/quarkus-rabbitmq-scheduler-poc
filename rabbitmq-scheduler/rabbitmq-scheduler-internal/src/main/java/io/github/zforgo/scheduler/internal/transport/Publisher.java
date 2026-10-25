@@ -71,7 +71,7 @@ public final class Publisher {
         var publishId = UUID.randomUUID().toString();
         seqByPublishId.put(publishId, seq);
         pending.put(seq, new Pending(publishId, outgoing.result()));
-        var headersWithId = headers(outgoing.props(), Map.of(KEY_PUBLISH_ID, publishId));
+        var headersWithId = mergeHeaders(outgoing.props(), Map.of(KEY_PUBLISH_ID, publishId));
         var propsWithId = outgoing.props()
                 .builder()
                 .headers(headersWithId)
@@ -107,10 +107,11 @@ public final class Publisher {
                 .map(h -> h.get(KEY_PUBLISH_ID))
                 .map(Object::toString)
                 .map(seqByPublishId::get)
-                .ifPresent(seq -> returned.put(seq, new UnroutableMessageException("szeva")));
+                .ifPresent(seq -> returned.put(seq,
+                        new UnroutableMessageException(r.getReplyCode(), r.getReplyText(), r.getExchange())));
     }
 
-    private static Map<String, Object> headers(AMQP.BasicProperties props, Map<String, Object> modification) {
+    private static Map<String, Object> mergeHeaders(AMQP.BasicProperties props, Map<String, Object> modification) {
         return Optional.ofNullable(props)
                 .map(AMQP.BasicProperties::getHeaders)
                 .map(h -> (Map<String, Object>) new HashMap<>(h))

@@ -32,7 +32,7 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
-<!-- TODO clean unnecessary dependencies-->
+    <!-- TODO clean unnecessary dependencies-->
     <dependencies>
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -51,14 +51,6 @@
             <artifactId>quarkus-config-yaml</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-messaging-rabbitmq</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.smallrye.reactive</groupId>
-            <artifactId>smallrye-reactive-messaging-jackson</artifactId>
-        </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-hibernate-orm</artifactId>
