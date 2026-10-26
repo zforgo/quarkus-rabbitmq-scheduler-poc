@@ -2,28 +2,46 @@ package io.github.zforgo.scheduler.internal.transport;
 
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
+import java.util.function.BooleanSupplier;
 
+import com.rabbitmq.client.AlreadyClosedException;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 
-import io.github.zforgo.scheduler.SchedulerException;
+import io.quarkus.logging.Log;
 
-public final class BrokerConnections implements AutoCloseable {
+import io.github.zforgo.scheduler.SchedulerException;
+import io.github.zforgo.scheduler.internal.Closer;
+
+public final class BrokerConnections {
 
     private final ConnectionFactory factory;
+    private final boolean consumingEnabled, publishingEnabled;
+
     private volatile Connection publishing;
     private volatile Connection consuming;
 
-    public BrokerConnections(ConnectionFactory factory) {
-        this.factory = factory;
+    private volatile boolean publishingBlocked;
 
+    public BrokerConnections(ConnectionFactory factory, boolean consumingEnabled, boolean publishingEnabled) {
+        this.factory = factory;
+        this.consumingEnabled = consumingEnabled;
+        this.publishingEnabled = publishingEnabled;
     }
 
-    //TODO open necessary connection(s) only
     public void open() {
         try {
-            publishing = factory.newConnection("scheduler-publisher");
-            consuming = factory.newConnection("scheduler-consumer");
+            publishing = publishingEnabled ? factory.newConnection("scheduler-publisher") : null;
+            consuming = consumingEnabled ? factory.newConnection("scheduler-consumer") : null;
+            publishing.addBlockedListener(
+                    reason -> {
+                        publishingBlocked = true;
+                        Log.warnf("Broker blocked publishing: %s", reason);
+                    },
+                    () -> {
+                        publishingBlocked = false;
+                        Log.info("Broker unblocked publishing");
+                    });
         } catch (IOException | TimeoutException e) {
             throw new SchedulerException(e);
         }
@@ -48,10 +66,22 @@ public final class BrokerConnections implements AutoCloseable {
         return connection;
     }
 
-    @Override
-    public void close() throws Exception {
-        //TODO better implementation w/safeClose and throwingCollector
-        publishing.close();
-        consuming.close();
+    public BooleanSupplier publishingBlocked() {
+        return () -> publishingBlocked;
+    }
+
+    public void shutdown(Closer closer) {
+        closer.close("Closing publisher connection", () -> closeConnection(publishing));
+        closer.close("Closing consumer connection", () -> closeConnection(consuming));
+    }
+
+    private static void closeConnection(Connection connection) throws IOException {
+        if (connection != null) {
+            try {
+                connection.close();
+            } catch (AlreadyClosedException e) {
+                Log.warn("Connection already closed", e);
+            }
+        }
     }
 }

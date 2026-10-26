@@ -76,6 +76,14 @@ public final class JobRegistry {
         return def;
     }
 
+    public boolean isEmpty() {
+        return definitions.isEmpty();
+    }
+
+    public boolean hasJobs() {
+        return !isEmpty();
+    }
+
     public Optional<JobDefinition> resolve(String group, Class<? extends ScheduledJob<?>> jobClass) {
         Objects.requireNonNull(group);
         Objects.requireNonNull(jobClass);

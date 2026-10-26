@@ -69,7 +69,7 @@ public interface SchedulerConfig {
 
     interface WorkerConfig {
 
-        @WithDefault("true")
+        @WithDefault("false")
         boolean enabled();
 
         @WithDefault("1")

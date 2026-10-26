@@ -41,11 +41,11 @@ class SchedulerWiring {
             SchedulerConfig config, Instance<TlsConfigurationRegistry> tls,
             JobStore store, @Any Instance<ScheduledJob<?>> jobs
     ) {
-        var tlsRegistry = tls.isResolvable() ? Optional.of(tls.get()) : Optional.<TlsConfigurationRegistry> empty();
-        var connections = new BrokerConnections(SchedulerConnectionFactory.create(config.broker(), tlsRegistry));
+        var registry = buildRegistry(config, jobs);
+        //TODO check that enabled worker has empty registry => throw ex
+        var connections = connectionComponent(config, tls, registry.hasJobs());
 
-        var discovered = discoveredJobs(config, jobs);
-        var registry = JobRegistry.from(config, discovered);
+        //TODO check and log that neither consuming nor publishing functions were enabled
 
         var codec = new PayloadCodec(config.store().poolSize());
 
@@ -53,6 +53,22 @@ class SchedulerWiring {
         var workerManager = new ConsumerWorker(config.worker(), handler);
         var publisherWorker = new PublisherWorker(config.topology(), new TierSelector());
         return new SchedulerEngine(connections, publisherWorker, workerManager, registry, codec, store);
+    }
+
+    private JobRegistry buildRegistry(SchedulerConfig config, @Any Instance<ScheduledJob<?>> jobs) {
+        var discovered = discoveredJobs(config, jobs);
+        return JobRegistry.from(config, discovered);
+    }
+
+    //TODO do not forget topology declaration role
+    private BrokerConnections connectionComponent(
+            SchedulerConfig config, Instance<TlsConfigurationRegistry> tls, boolean hasJobs
+    ) {
+        var tlsRegistry = tls.isResolvable() ? Optional.of(tls.get()) : Optional.<TlsConfigurationRegistry> empty();
+        var connectionFactory = SchedulerConnectionFactory.create(config.broker(), tlsRegistry);
+        var consumingEnabled = config.topology().requeue().enabled() || (config.worker().enabled() && hasJobs);
+        var publishingEnabled = consumingEnabled || config.schedulingEnabled();
+        return new BrokerConnections(connectionFactory, consumingEnabled, publishingEnabled);
     }
 
     @Produces
@@ -75,6 +91,7 @@ class SchedulerWiring {
         engine.start();
     }
 
-    void close(@Observes ShutdownEvent event) {
+    void close(@Observes ShutdownEvent event, SchedulerEngine engine) throws Exception {
+        engine.shutdown();
     }
 }

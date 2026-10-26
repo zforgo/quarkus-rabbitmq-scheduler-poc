@@ -1,10 +1,13 @@
 package io.github.zforgo.scheduler.internal.consume;
 
 import java.io.IOException;
-import java.util.concurrent.Executor;
+import java.time.Duration;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.TimeUnit;
 
 import com.rabbitmq.client.AMQP;
+import com.rabbitmq.client.AlreadyClosedException;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.Envelope;
@@ -19,22 +22,21 @@ import io.github.zforgo.scheduler.internal.transport.QueuedItemCodec;
 final class GroupConsumer extends DefaultConsumer {
 
     private final WorkerGroup group;
-    private final Executor executor;
+    private final ExecutorService executor;
     private final Object ackLock = new Object();
     private final JobExecutionHandler executionHandler;
-    private volatile String consumerTag;
 
     GroupConsumer(Channel channel, WorkerGroup group, JobExecutionHandler executionHandler) {
         super(channel);
         this.group = group;
-        this.executor = new BoundedExecutor(group.name(), group.concurrency());
+        this.executor = new BoundedExecutorService(group.name(), group.concurrency());
         this.executionHandler = executionHandler;
     }
 
     void start() {
         try {
             getChannel().basicQos(group.concurrency());
-            consumerTag = getChannel().basicConsume(group.queueName(), false, this);
+            getChannel().basicConsume(group.queueName(), false, this);
         } catch (IOException e) {
             throw new SchedulerException(e);
         }
@@ -104,5 +106,30 @@ final class GroupConsumer extends DefaultConsumer {
                 getChannel().basicAck(tag, false);
             } catch (IOException e) { /* channel gone → broker redelivers */ } //TODO
         }
+    }
+
+    public String groupName() {
+        return group.name();
+    }
+
+    public void hangup() throws IOException {
+        var tag = getConsumerTag();
+        if (tag != null && getChannel().isOpen()) {
+            try {
+                getChannel().basicCancel(tag);
+            } catch (AlreadyClosedException _) {
+                Log.debugf("Channel of consumer [%s] already closed", tag);
+            }
+        }
+    }
+
+    public boolean shutdown(Duration grace) throws InterruptedException {
+        executor.shutdown();
+        return executor.awaitTermination(grace.toNanos(), TimeUnit.NANOSECONDS);
+    }
+
+    public boolean shutdownNow(Duration grace) throws InterruptedException {
+        executor.shutdownNow();
+        return executor.awaitTermination(grace.toNanos(), TimeUnit.NANOSECONDS);
     }
 }
