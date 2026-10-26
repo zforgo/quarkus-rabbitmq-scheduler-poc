@@ -15,24 +15,26 @@ rabbitmq-password: firqua1234
 
 scheduler:
   worker:
+    enabled: true
     concurrency: 20
     groups:
       - name: default
   topology:
     requeue:
       enabled: true
-#  jobs:
-#    "default":
-#      - id: foo
-#        class: io.github.zforgo.application.SampleJob
-#      - id: bar
-#        class: io.github.zforgo.application.NoArgJob
-#    "payment":
-#      - id: baz
-#        class: io.github.zforgo.application.NonRegisteredJob
-#      - id: valami
-#        class: io.github.zforgo.scheduler.discovery.StartupBean
+  #  jobs:
+  #    "default":
+  #      - id: foo
+  #        class: io.github.zforgo.application.SampleJob
+  #      - id: bar
+  #        class: io.github.zforgo.application.NoArgJob
+  #    "payment":
+  #      - id: baz
+  #        class: io.github.zforgo.application.NonRegisteredJob
+  #      - id: valami
+  #        class: io.github.zforgo.scheduler.discovery.StartupBean
   discovery:
     enabled: true
     strategy: merge
+  scheduling-enabled: true
 

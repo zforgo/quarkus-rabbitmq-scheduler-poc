@@ -1,5 +1,6 @@
 package io.github.zforgo.scheduler.internal;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -17,7 +18,7 @@ import io.github.zforgo.scheduler.internal.store.JobStore;
 import io.github.zforgo.scheduler.internal.store.PayloadCodec;
 import io.github.zforgo.scheduler.internal.transport.BrokerConnections;
 
-final class SchedulerEngine implements AutoCloseable {
+final class SchedulerEngine {
 
     private final BrokerConnections connections;
     private final JobRegistry registry;
@@ -66,12 +67,20 @@ final class SchedulerEngine implements AutoCloseable {
 
     public void start() {
         connections.open();
-        publisherWorker.start(connections.publishing());
+        publisherWorker.start(connections.publishing(), connections.publishingBlocked());
         consumerWorker.start(connections.consuming());
     }
 
-    @Override
-    public void close() {
+    public void shutdown() throws Exception {
+        var closer = new Closer();
+        final var grace = Duration.ofSeconds(10L);
+        var deadline = System.nanoTime() + grace.toNanos();
+        consumerWorker.shutdown(grace, closer);
+        var remaining = Duration.ofNanos(Math.max(0, deadline - System.nanoTime()));
+        publisherWorker.shutdown(remaining, closer);
+
+        connections.shutdown(closer);
         codec.close();
+        closer.throwIfFailed();
     }
 }

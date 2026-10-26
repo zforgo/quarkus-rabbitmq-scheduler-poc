@@ -1,11 +1,15 @@
 package io.github.zforgo.scheduler.internal.publish;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutionException;
 
 import com.rabbitmq.client.AMQP;
+import com.rabbitmq.client.AlreadyClosedException;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.Envelope;
@@ -25,9 +29,9 @@ public class RequeueShovel extends DefaultConsumer {
     private final String queueName;
     private final String exchangeName;
     private final TierSelector tierSelector;
-    private final Object ackLock = new Object();
 
-    private String consumerTag;
+    private final Object ackLock = new Object();
+    private volatile boolean closing;
 
     public RequeueShovel(
             Channel channel, Publisher publisher, String queueName, String exchangeName, TierSelector tierSelector
@@ -39,18 +43,12 @@ public class RequeueShovel extends DefaultConsumer {
         this.tierSelector = tierSelector;
     }
 
-    void start() {
-        try {
-            getChannel().basicQos(1);
-            consumerTag = getChannel().basicConsume(queueName, false, this);
-        } catch (IOException e) {
-            throw new SchedulerException(e);
-        }
-    }
-
     @Override
     public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) {
         var deliveryTag = envelope.getDeliveryTag();
+        if (closing) {
+            nack(deliveryTag, false);
+        }
         Tier nextTier;
         try {
             var payload = QueuedItemCodec.decode(body);
@@ -69,10 +67,13 @@ public class RequeueShovel extends DefaultConsumer {
                 .build();
 
         publisher.publish(exchangeName, "", props, body)
-                .subscribe().with(
-                        _ -> ack(deliveryTag),
-                        failure -> handleFailure(deliveryTag, failure)
-                );
+                .whenComplete((_, failure) -> {
+                    if (failure == null) {
+                        ack(deliveryTag);
+                    } else {
+                        handleFailure(deliveryTag, unwrap(failure));
+                    }
+                });
     }
 
     private void ack(long tag) {
@@ -105,4 +106,31 @@ public class RequeueShovel extends DefaultConsumer {
         nack(tag, true);
     }
 
+    private static Throwable unwrap(Throwable t) {
+        while ((t instanceof CompletionException || t instanceof ExecutionException) && t.getCause() != null) {
+            t = t.getCause();
+        }
+        return t;
+    }
+
+    void start() {
+        try {
+            getChannel().basicQos(1);
+            getChannel().basicConsume(queueName, false, this);
+        } catch (IOException e) {
+            throw new SchedulerException(e);
+        }
+    }
+
+    void shutdown(Duration grace) throws IOException {
+        closing = true;
+        var tag = getConsumerTag();
+        if (tag != null && getChannel().isOpen()) {
+            try {
+                getChannel().basicCancel(tag);
+            } catch (AlreadyClosedException _) {
+                Log.debugf("Channel of consumer [%s] already closed", tag);
+            }
+        }
+    }
 }
